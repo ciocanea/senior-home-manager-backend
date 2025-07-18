@@ -14,15 +14,14 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/hello-world/**", "/h2-console/**").permitAll()
+                        .requestMatchers("/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .csrf(csrf -> csrf.disable())
                 .headers(headers -> headers
-                        .frameOptions(frame -> frame.sameOrigin()) // ✅ NEW STYLE
+                        .frameOptions(frame -> frame.sameOrigin())
                 )
                 .cors(cors -> {})
-
                 .formLogin(form -> form.disable()); // disable login form for API-style use
 
         return http.build();
