@@ -1,36 +1,32 @@
 package com.seniorhomemanager.backend.models;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import lombok.AllArgsConstructor;
-import lombok.Data;
+import jakarta.persistence.*;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.util.UUID;
 
+
 @Entity
-@Data
+@Getter
+@Setter
+@EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
-@AllArgsConstructor
-public class Beneficiary {
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
+public class Beneficiary extends Person{
 
-    private String nume;
-    private String prenume;
+    @ManyToOne
+    private Guardian guardian;
 
-    private String cnp;
-    private String serieCi;
-    private String numarCi;
+    public Beneficiary(UUID id, String nume, String prenume, String cnp, String serieCi, String numarCi, Guardian guardian) {
+        super(id, nume, prenume, cnp, serieCi, numarCi);
+        this.guardian = guardian;
+    }
 
 //    private String locNastere;
 //
 //    private String domiciliu;
 //
 //    private String sex;
-
-
 }
