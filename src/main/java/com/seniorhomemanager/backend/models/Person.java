@@ -24,6 +24,7 @@ public abstract class Person {
 
     private String nume;
     private String prenume;
+    private LocalDate dataNasterii;
 
     private String cnp;
     private String serieCi;
@@ -34,6 +35,10 @@ public abstract class Person {
 
     private String strada;
     private String numarAdresa;
+    private String bloc;
+    private String scara;
+    private String etaj;
+    private String apartament;
 
     private LocalDate dataEliberareCi;
     private String sectie;
