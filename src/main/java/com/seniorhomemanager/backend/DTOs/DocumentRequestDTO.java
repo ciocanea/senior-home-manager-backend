@@ -1,10 +1,11 @@
 package com.seniorhomemanager.backend.DTOs;
 
-import com.seniorhomemanager.backend.models.Beneficiary;
 import lombok.Data;
+
+import java.util.UUID;
 
 @Data
 public class DocumentRequestDTO {
     private String templateName;
-    private Beneficiary beneficiary;
+    private UUID beneficiaryId;
 }

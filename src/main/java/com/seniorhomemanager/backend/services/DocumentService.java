@@ -9,6 +9,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.Map;
 
 @Service
@@ -24,7 +26,37 @@ public class DocumentService {
         this.templateFiller = templateFiller;
     }
 
-    public byte[] generate (String templateName, Map<String, String> placeholderValues) throws IOException {
+    public byte[] generate (String templateName, Beneficiary beneficiary) throws IOException {
+        String currentDate = LocalDate.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy"));
+
+        Map<String, String> placeholderValues = Map.ofEntries(
+                Map.entry("${data}", currentDate),
+
+                Map.entry("${nume}", beneficiary.getNume()),
+                Map.entry("${prenume}", beneficiary.getPrenume()),
+                Map.entry("${cnp}", beneficiary.getCnp()),
+                Map.entry("${serie_ci}", beneficiary.getSerieCi()),
+                Map.entry("${numar_ci}", beneficiary.getNumarCi()),
+                Map.entry("${oras}", beneficiary.getOras()),
+                Map.entry("${judet}", beneficiary.getJudet()),
+                Map.entry("${strada}", beneficiary.getStrada()),
+                Map.entry("${numar_adresa}", beneficiary.getNumarAdresa()),
+                Map.entry("${data_eliberare_ci}", beneficiary.getDataEliberareCi().format(DateTimeFormatter.ofPattern("dd.MM.yyyy"))),
+                Map.entry("${sectie}", beneficiary.getSectie()),
+
+                Map.entry("${nume_apartinator}", beneficiary.getGuardian().getNume()),
+                Map.entry("${prenume_apartinator}", beneficiary.getGuardian().getPrenume()),
+                Map.entry("${cnp_apartinator}", beneficiary.getGuardian().getCnp()),
+                Map.entry("${serie_ci_apartinator}", beneficiary.getGuardian().getSerieCi()),
+                Map.entry("${numar_ci_apartinator}", beneficiary.getGuardian().getNumarCi()),
+                Map.entry("${oras_apartinator}", beneficiary.getGuardian().getOras()),
+                Map.entry("${judet_apartinator}", beneficiary.getGuardian().getJudet()),
+                Map.entry("${strada_apartinator}", beneficiary.getGuardian().getStrada()),
+                Map.entry("${numar_adresa_apartinator}", beneficiary.getGuardian().getNumarAdresa()),
+                Map.entry("${data_eliberare_ci_apartinator}", beneficiary.getGuardian().getDataEliberareCi().format(DateTimeFormatter.ofPattern("dd.MM.yyyy"))),
+                Map.entry("${sectie_apartinator}", beneficiary.getGuardian().getSectie())
+        );
+
         File templateFile = new File(templateFolderPath, templateName);
 
         if (!templateFile.exists() || !templateFile.isFile()) {

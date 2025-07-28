@@ -9,6 +9,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
 import java.util.UUID;
 
 @MappedSuperclass
@@ -27,4 +28,13 @@ public abstract class Person {
     private String cnp;
     private String serieCi;
     private String numarCi;
+
+    private String oras;
+    private String judet;
+
+    private String strada;
+    private String numarAdresa;
+
+    private LocalDate dataEliberareCi;
+    private String sectie;
 }
