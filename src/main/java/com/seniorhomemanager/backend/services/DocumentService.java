@@ -4,14 +4,19 @@ import com.seniorhomemanager.backend.models.Beneficiary;
 import com.seniorhomemanager.backend.utils.TemplateFiller;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 public class DocumentService {
@@ -77,5 +82,47 @@ public class DocumentService {
             templateFiller.fillTemplate(templateFile, outputStream, placeholderValues);
             return outputStream.toByteArray();
         }
+    }
+
+    public void upload (MultipartFile newDocument) {
+        File folder = new File(templateFolderPath);
+
+        if (!folder.exists() || !folder.isDirectory()) {
+            throw new IllegalArgumentException("Folder not found: " + templateFolderPath);
+        }
+
+        File newLocation = new File(folder, newDocument.getOriginalFilename());
+
+        try {
+            newDocument.transferTo(newLocation.toPath());
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to save uploaded file", e);
+        }
+    }
+
+    public void delete (String name) throws IOException{
+        File file = new File(templateFolderPath + File.separator + name);
+
+
+        if (!file.exists()) {
+            throw new FileNotFoundException("File not found: " + file.getAbsolutePath());
+        }
+
+        if (!file.delete()) {
+            throw new IOException("Failed to delete file: " + file.getAbsolutePath());
+        }
+    }
+
+    public List<String> getNames() throws IOException {
+        File folder = new File(templateFolderPath);
+
+        if (!folder.exists() || !folder.isDirectory()) {
+            throw new FileNotFoundException("Folder not found: " + templateFolderPath);
+        }
+
+        return Arrays.stream(folder.listFiles())
+                .filter(file -> file.isFile() && file.getName().endsWith(".docx"))
+                .map(File::getName)
+                .collect(Collectors.toList());
     }
 }
