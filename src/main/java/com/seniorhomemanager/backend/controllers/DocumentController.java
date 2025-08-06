@@ -37,14 +37,14 @@ public class DocumentController {
     @PostMapping("/generate")
     public ResponseEntity<byte[]> generate (@RequestBody DocumentRequestDTO documentRequestDTO) {
         try {
-            String templateName = documentRequestDTO.getTemplateName();
+            String documentName = documentRequestDTO.getDocumentName();
             Beneficiary beneficiary = beneficiaryService.get(documentRequestDTO.getBeneficiaryId());
 
-            byte[] document = documentService.generate(templateName, beneficiary);
+            byte[] document = documentService.generate(documentName, beneficiary);
 
             return ResponseEntity.ok()
                     .contentType(MediaType.APPLICATION_OCTET_STREAM)
-                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + templateName + "\"")
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + documentName + "\"")
                     .body(document);
 
         } catch (IllegalArgumentException | EntityNotFoundException e) {
@@ -54,9 +54,24 @@ public class DocumentController {
         }
     }
 
+    @PutMapping("/edit/{documentName}")
+    public ResponseEntity<Void> edit (@PathVariable String documentName, @RequestBody List<String> placeholders) {
+        try {
+            documentService.edit(documentName, placeholders);
+
+            return ResponseEntity.ok().build();
+        }
+        catch (IllegalArgumentException | EntityNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+    }
+
     @PostMapping("/upload")
     public ResponseEntity<Void> upload (@RequestParam("newDocument") MultipartFile newDocument) {
         try {
+
             documentService.upload(newDocument);
             return ResponseEntity.ok().build();
         } catch (Exception e) {
@@ -71,6 +86,16 @@ public class DocumentController {
             return ResponseEntity.ok().build();
         } catch (IOException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+    }
+
+    @GetMapping("/{documentName}")
+    public ResponseEntity<byte[]> get (@PathVariable String documentName) {
+        try {
+            byte[] content = documentService.get(documentName);
+            return ResponseEntity.ok(content);
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
         }
     }
 

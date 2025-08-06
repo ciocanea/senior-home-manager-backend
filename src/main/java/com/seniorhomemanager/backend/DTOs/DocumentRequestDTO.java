@@ -6,6 +6,6 @@ import java.util.UUID;
 
 @Data
 public class DocumentRequestDTO {
-    private String templateName;
+    private String documentName;
     private UUID beneficiaryId;
 }
