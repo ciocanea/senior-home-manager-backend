@@ -40,4 +40,4 @@ out/
 *.mv.db
 
 ### Templates ###
-/data/templates/*.docx
+/data/documents/*.docx
