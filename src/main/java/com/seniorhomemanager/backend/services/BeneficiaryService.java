@@ -5,6 +5,9 @@ import com.seniorhomemanager.backend.repositories.BeneficiaryRepository;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
 
@@ -28,5 +31,13 @@ public class BeneficiaryService {
 
     public Beneficiary add (Beneficiary beneficiary) {
         return beneficiaryRepository.save(beneficiary);
+    }
+
+    public void delete(UUID beneficiaryId) {
+        if (!beneficiaryRepository.existsById(beneficiaryId)) {
+            throw new EntityNotFoundException("Beneficiary not found: " + beneficiaryId);
+        }
+
+        beneficiaryRepository.deleteById(beneficiaryId);
     }
 }

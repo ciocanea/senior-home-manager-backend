@@ -17,11 +17,7 @@ import java.util.UUID;
 @NoArgsConstructor
 public class Beneficiary extends Person{
 
-    @ManyToOne
+    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "guardian_id")
     private Guardian guardian;
-
-//    public Beneficiary(UUID id, String nume, String prenume, String cnp, String serieCi, String numarCi, String oras, String judet, String strada, String numarAdresa, LocalDate dataEliberareCi, String sectie, Guardian guardian) {
-//        super(id, nume, prenume, cnp, serieCi, numarCi, oras, judet, strada, numarAdresa, dataEliberareCi, sectie);
-//        this.guardian = guardian;
-//    }
 }

@@ -22,6 +22,7 @@ public class DocumentEditor {
         ) {
             int placeholderIndex = 0;
             for (XWPFParagraph paragraph: modifiableDocument.getParagraphs()) {
+                boolean edited = false;
                 String paragraphText = paragraph.getText();
 
                 Pattern pattern = Pattern.compile("(\\$\\{[^}]+}|[.‥…]{3,})");
@@ -32,20 +33,24 @@ public class DocumentEditor {
                 while (matcher.find() && placeholderIndex < placeholders.size()) {
                     String replacement = placeholders.get(placeholderIndex++);
                     if (!replacement.isEmpty()) {
+                        edited = true;
                         matcher.appendReplacement(replacedText, Matcher.quoteReplacement(replacement));
                     }
                 }
 
                 matcher.appendTail(replacedText);
 
-                for (int i = paragraph.getRuns().size() - 1; i >= 0; i--) {
-                    paragraph.removeRun(i);
-                }
+                if (edited) {
+                    for (int i = paragraph.getRuns().size() - 1; i >= 0; i--) {
+                        paragraph.removeRun(i);
+                    }
 
-                XWPFRun newRun = paragraph.createRun();
-                newRun.setText(replacedText.toString());
+                    XWPFRun newRun = paragraph.createRun();
+                    newRun.setText(replacedText.toString());
 //                newRun.setFontFamily(fontFamily);
 //                newRun.setFontSize(fontSize);
+                }
+
             }
 
             modifiableDocument.write(outputStream);

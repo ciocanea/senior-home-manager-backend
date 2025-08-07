@@ -71,8 +71,9 @@ public class DocumentController {
     @PostMapping("/upload")
     public ResponseEntity<Void> upload (@RequestParam("newDocument") MultipartFile newDocument) {
         try {
-
-            documentService.upload(newDocument);
+            byte[] sanitizedDocument = documentService.sanitize(newDocument.getBytes(), newDocument.getOriginalFilename());
+            documentService.upload(sanitizedDocument, newDocument.getOriginalFilename());
+//            documentService.upload(newDocument.getBytes(), newDocument.getOriginalFilename());
             return ResponseEntity.ok().build();
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
