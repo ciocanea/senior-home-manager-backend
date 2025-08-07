@@ -82,22 +82,22 @@ public class DocumentService {
                 Map.entry("${data_eliberare_ci_BEN}", dataEliberareCi),
                 Map.entry("${sectie_BEN}", beneficiary.getSectie()),
 
-                Map.entry("${nume_apartinator}", beneficiary.getGuardian().getNume()),
-                Map.entry("${prenume_apartinator}", beneficiary.getGuardian().getPrenume()),
-                Map.entry("${data_nasterii_apartinator}", dataNasteriiApartinator),
-                Map.entry("${cnp_apartinator}", beneficiary.getGuardian().getCnp()),
-                Map.entry("${serie_ci_apartinator}", beneficiary.getGuardian().getSerieCi()),
-                Map.entry("${numar_ci_apartinator}", beneficiary.getGuardian().getNumarCi()),
-                Map.entry("${oras_apartinator}", beneficiary.getGuardian().getOras()),
-                Map.entry("${judet_apartinator}", beneficiary.getGuardian().getJudet()),
-                Map.entry("${strada_apartinator}", beneficiary.getGuardian().getStrada()),
-                Map.entry("${bloc_apartinator}", beneficiary.getGuardian().getBloc()),
-                Map.entry("${scara_apartinator}", beneficiary.getGuardian().getScara()),
-                Map.entry("${etaj_apartinator}", beneficiary.getGuardian().getEtaj()),
-                Map.entry("${apartament_apartinator}", beneficiary.getGuardian().getApartament()),
-                Map.entry("${numar_adresa_apartinator}", beneficiary.getGuardian().getNumarAdresa()),
-                Map.entry("${data_eliberare_ci_apartinator}", dataEliberareCiApartinator),
-                Map.entry("${sectie_apartinator}", beneficiary.getGuardian().getSectie())
+                Map.entry("${nume_APA}", beneficiary.getGuardian().getNume()),
+                Map.entry("${prenume_APA}", beneficiary.getGuardian().getPrenume()),
+                Map.entry("${data_nasterii_APA}", dataNasteriiApartinator),
+                Map.entry("${cnp_APA}", beneficiary.getGuardian().getCnp()),
+                Map.entry("${serie_ci_APA}", beneficiary.getGuardian().getSerieCi()),
+                Map.entry("${numar_ci_APA}", beneficiary.getGuardian().getNumarCi()),
+                Map.entry("${oras_APA}", beneficiary.getGuardian().getOras()),
+                Map.entry("${judet_APA}", beneficiary.getGuardian().getJudet()),
+                Map.entry("${strada_APA}", beneficiary.getGuardian().getStrada()),
+                Map.entry("${bloc_APA}", beneficiary.getGuardian().getBloc()),
+                Map.entry("${scara_APA}", beneficiary.getGuardian().getScara()),
+                Map.entry("${etaj_APA}", beneficiary.getGuardian().getEtaj()),
+                Map.entry("${apartament_APA}", beneficiary.getGuardian().getApartament()),
+                Map.entry("${numar_adresa_APA}", beneficiary.getGuardian().getNumarAdresa()),
+                Map.entry("${data_eliberare_ci_APA}", dataEliberareCiApartinator),
+                Map.entry("${sectie_APA}", beneficiary.getGuardian().getSectie())
         );
 
         try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
