@@ -17,8 +17,4 @@ import java.util.UUID;
 @NoArgsConstructor
 public class Guardian extends Person {
 
-//    public Guardian(UUID id, String nume, String prenume, String cnp, String serieCi, String numarCi, String oras, String judet, String strada, String numarAdresa, LocalDate dataEliberareCi, String sectie) {
-//        super(id, nume, prenume, cnp, serieCi, numarCi, oras, judet, strada, numarAdresa, dataEliberareCi, sectie);
-//    }
-
 }
