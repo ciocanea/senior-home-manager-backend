@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Map;
 
 @Component
-public class TemplateFiller {
+public class DocumentFiller {
 
     public void fillTemplate (File templateDocument, OutputStream outputStream, Map<String, String> placeholderValues) throws IOException {
         try (
