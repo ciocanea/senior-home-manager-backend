@@ -2,7 +2,8 @@ package com.seniorhomemanager.backend.services;
 
 import com.seniorhomemanager.backend.models.Beneficiary;
 import com.seniorhomemanager.backend.utils.DocumentEditor;
-import com.seniorhomemanager.backend.utils.TemplateFiller;
+import com.seniorhomemanager.backend.utils.DocumentFiller;
+import com.seniorhomemanager.backend.utils.DocumentSanitizer;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -19,16 +20,18 @@ import java.util.stream.Collectors;
 @Service
 public class DocumentService {
 
-    private final TemplateFiller documentFiller;
+    private final DocumentFiller documentFiller;
     private final DocumentEditor documentEditor;
+    private final DocumentSanitizer documentSanitizer;
 
     @Value("${document.folder.path:data/documents}")
     private String documentFolderPath;
 
 
-    public DocumentService(TemplateFiller documentFiller, DocumentEditor documentEditor) {
+    public DocumentService(DocumentFiller documentFiller, DocumentEditor documentEditor, DocumentSanitizer documentSanitizer) {
         this.documentFiller = documentFiller;
         this.documentEditor = documentEditor;
+        this.documentSanitizer = documentSanitizer;
     }
 
     public byte[] generate (String documentName, Beneficiary beneficiary) throws IOException {
@@ -62,22 +65,22 @@ public class DocumentService {
         Map<String, String> placeholderValues = Map.ofEntries(
                 Map.entry("${data}", currentDate),
 
-                Map.entry("${nume}", beneficiary.getNume()),
-                Map.entry("${prenume}", beneficiary.getPrenume()),
-                Map.entry("${data_nasterii}", dataNasterii),
-                Map.entry("${cnp}", beneficiary.getCnp()),
-                Map.entry("${serie_ci}", beneficiary.getSerieCi()),
-                Map.entry("${numar_ci}", beneficiary.getNumarCi()),
-                Map.entry("${oras}", beneficiary.getOras()),
-                Map.entry("${judet}", beneficiary.getJudet()),
-                Map.entry("${strada}", beneficiary.getStrada()),
-                Map.entry("${numar_adresa}", beneficiary.getNumarAdresa()),
-                Map.entry("${bloc}", beneficiary.getBloc()),
-                Map.entry("${scara}", beneficiary.getScara()),
-                Map.entry("${etaj}", beneficiary.getEtaj()),
-                Map.entry("${apartament}", beneficiary.getApartament()),
-                Map.entry("${data_eliberare_ci}", dataEliberareCi),
-                Map.entry("${sectie}", beneficiary.getSectie()),
+                Map.entry("${nume_BEN}", beneficiary.getNume()),
+                Map.entry("${prenume_BEN}", beneficiary.getPrenume()),
+                Map.entry("${data_nasterii_BEN}", dataNasterii),
+                Map.entry("${cnp_BEN}", beneficiary.getCnp()),
+                Map.entry("${serie_ci_BEN}", beneficiary.getSerieCi()),
+                Map.entry("${numar_ci_BEN}", beneficiary.getNumarCi()),
+                Map.entry("${oras_BEN}", beneficiary.getOras()),
+                Map.entry("${judet_BEN}", beneficiary.getJudet()),
+                Map.entry("${strada_BEN}", beneficiary.getStrada()),
+                Map.entry("${numar_adresa_BEN}", beneficiary.getNumarAdresa()),
+                Map.entry("${bloc_BEN}", beneficiary.getBloc()),
+                Map.entry("${scara_BEN}", beneficiary.getScara()),
+                Map.entry("${etaj_BEN}", beneficiary.getEtaj()),
+                Map.entry("${apartament_BEN}", beneficiary.getApartament()),
+                Map.entry("${data_eliberare_ci_BEN}", dataEliberareCi),
+                Map.entry("${sectie_BEN}", beneficiary.getSectie()),
 
                 Map.entry("${nume_apartinator}", beneficiary.getGuardian().getNume()),
                 Map.entry("${prenume_apartinator}", beneficiary.getGuardian().getPrenume()),
@@ -132,7 +135,7 @@ public class DocumentService {
         }
     }
 
-    public void upload (byte[] fileData, String documentName) {
+    public void upload (byte[] document, String documentName) {
         File folder = new File(documentFolderPath);
 
         if (!folder.exists() || !folder.isDirectory()) {
@@ -142,12 +145,18 @@ public class DocumentService {
         File newLocation = new File(folder, documentName);
 
         try (FileOutputStream fileOutputStream = new FileOutputStream(newLocation)) {
-            fileOutputStream.write(fileData);
+            fileOutputStream.write(document);
         } catch (IOException e) {
             throw new RuntimeException("Failed to save uploaded file", e);
         }
     }
 
+    public byte[] sanitize (byte[] document, String documentName) throws IOException {
+        try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
+            documentSanitizer.sanitize(document, outputStream);
+            return outputStream.toByteArray();
+        }
+    }
 
     public void delete (String name) throws IOException{
         File file = new File(documentFolderPath + File.separator + name);
