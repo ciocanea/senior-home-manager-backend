@@ -22,10 +22,18 @@ public class DocumentEditor {
         ) {
             int placeholderIndex = 0;
             for (XWPFParagraph paragraph: modifiableDocument.getParagraphs()) {
+                List<XWPFRun> runs = paragraph.getRuns();
+                if (runs == null || runs.isEmpty()) continue;
+
+                String fontFamily = runs.getFirst().getFontName();
+                Double fontSize = runs.getFirst().getFontSizeAsDouble();
+                if (fontSize == null) fontSize = 12.0;
+
+
                 boolean edited = false;
                 String paragraphText = paragraph.getText();
 
-                Pattern pattern = Pattern.compile("(\\$\\{[^}]+}|[.‥…]{3,})");
+                Pattern pattern = Pattern.compile("(\\$\\{[^}]+}|\\.{4,}|(\\.|‥|…){3,}|(‥|…){2,})");
                 Matcher matcher = pattern.matcher(paragraphText);
 
                 StringBuilder replacedText = new StringBuilder();
@@ -47,8 +55,8 @@ public class DocumentEditor {
 
                     XWPFRun newRun = paragraph.createRun();
                     newRun.setText(replacedText.toString());
-//                newRun.setFontFamily(fontFamily);
-//                newRun.setFontSize(fontSize);
+                    newRun.setFontFamily(fontFamily);
+                    newRun.setFontSize(fontSize);
                 }
 
             }

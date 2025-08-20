@@ -50,6 +50,21 @@ public class DocumentFiller {
         String replacedText = paragraphText.toString();
         for (Map.Entry<String, String> entry : placeholderValues.entrySet()) {
             String value = entry.getValue().isEmpty() ? ".".repeat(30) : entry.getValue().toUpperCase();
+
+            if (entry.getKey().startsWith("${serie")
+                || entry.getKey().startsWith("${numar")
+                || entry.getKey().startsWith("${bloc")
+                || entry.getKey().startsWith("${scara")
+                || entry.getKey().startsWith("${etaj")
+                || entry.getKey().startsWith("${apartament")
+            ) {
+                value = entry.getValue().isEmpty() ? ".".repeat(10) : entry.getValue().toUpperCase();
+            }
+
+            if (entry.getKey().startsWith("${adresa")
+                || entry.getKey().startsWith("${nume_complet")) {
+                value = entry.getValue().isEmpty() ? ".".repeat(60) : entry.getValue().toUpperCase();
+            }
             replacedText = replacedText.replace(entry.getKey(), value);
         }
 
