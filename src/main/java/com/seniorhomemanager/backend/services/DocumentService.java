@@ -1,6 +1,7 @@
 package com.seniorhomemanager.backend.services;
 
 import com.seniorhomemanager.backend.models.Beneficiary;
+import com.seniorhomemanager.backend.models.Person;
 import com.seniorhomemanager.backend.utils.DocumentEditor;
 import com.seniorhomemanager.backend.utils.DocumentFiller;
 import com.seniorhomemanager.backend.utils.DocumentSanitizer;
@@ -53,12 +54,12 @@ public class DocumentService {
         }
 
         String dataNasteriiApartinator = "";
-        if (beneficiary.getDataNasterii() != null) {
+        if (beneficiary.getGuardian().getDataNasterii() != null) {
             dataNasteriiApartinator = beneficiary.getGuardian().getDataNasterii().format(DateTimeFormatter.ofPattern("dd.MM.yyyy"));
         }
 
         String dataEliberareCiApartinator = "";
-        if (beneficiary.getDataNasterii() != null) {
+        if (beneficiary.getGuardian().getDataNasterii() != null) {
             dataEliberareCiApartinator = beneficiary.getGuardian().getDataEliberareCi().format(DateTimeFormatter.ofPattern("dd.MM.yyyy"));
         }
 
@@ -67,10 +68,14 @@ public class DocumentService {
 
                 Map.entry("${nume_BEN}", beneficiary.getNume()),
                 Map.entry("${prenume_BEN}", beneficiary.getPrenume()),
+                Map.entry("${nume_complet_BEN}", beneficiary.getNume() + " " + beneficiary.getPrenume()),
                 Map.entry("${data_nasterii_BEN}", dataNasterii),
                 Map.entry("${cnp_BEN}", beneficiary.getCnp()),
                 Map.entry("${serie_ci_BEN}", beneficiary.getSerieCi()),
                 Map.entry("${numar_ci_BEN}", beneficiary.getNumarCi()),
+                Map.entry("${data_eliberare_ci_BEN}", dataEliberareCi),
+                Map.entry("${sectie_BEN}", beneficiary.getSectie()),
+                Map.entry("${adresa_BEN}", buildAddress(beneficiary)),
                 Map.entry("${oras_BEN}", beneficiary.getOras()),
                 Map.entry("${judet_BEN}", beneficiary.getJudet()),
                 Map.entry("${strada_BEN}", beneficiary.getStrada()),
@@ -79,31 +84,53 @@ public class DocumentService {
                 Map.entry("${scara_BEN}", beneficiary.getScara()),
                 Map.entry("${etaj_BEN}", beneficiary.getEtaj()),
                 Map.entry("${apartament_BEN}", beneficiary.getApartament()),
-                Map.entry("${data_eliberare_ci_BEN}", dataEliberareCi),
-                Map.entry("${sectie_BEN}", beneficiary.getSectie()),
 
                 Map.entry("${nume_APA}", beneficiary.getGuardian().getNume()),
                 Map.entry("${prenume_APA}", beneficiary.getGuardian().getPrenume()),
+                Map.entry("${nume_complet_APA}", beneficiary.getGuardian().getNume() + " " + beneficiary.getGuardian().getPrenume()),
                 Map.entry("${data_nasterii_APA}", dataNasteriiApartinator),
                 Map.entry("${cnp_APA}", beneficiary.getGuardian().getCnp()),
                 Map.entry("${serie_ci_APA}", beneficiary.getGuardian().getSerieCi()),
                 Map.entry("${numar_ci_APA}", beneficiary.getGuardian().getNumarCi()),
+                Map.entry("${data_eliberare_ci_APA}", dataEliberareCiApartinator),
+                Map.entry("${sectie_APA}", beneficiary.getGuardian().getSectie()),
+                Map.entry("${adresa_APA}", buildAddress(beneficiary.getGuardian())),
                 Map.entry("${oras_APA}", beneficiary.getGuardian().getOras()),
                 Map.entry("${judet_APA}", beneficiary.getGuardian().getJudet()),
                 Map.entry("${strada_APA}", beneficiary.getGuardian().getStrada()),
+                Map.entry("${numar_adresa_APA}", beneficiary.getGuardian().getNumarAdresa()),
                 Map.entry("${bloc_APA}", beneficiary.getGuardian().getBloc()),
                 Map.entry("${scara_APA}", beneficiary.getGuardian().getScara()),
                 Map.entry("${etaj_APA}", beneficiary.getGuardian().getEtaj()),
-                Map.entry("${apartament_APA}", beneficiary.getGuardian().getApartament()),
-                Map.entry("${numar_adresa_APA}", beneficiary.getGuardian().getNumarAdresa()),
-                Map.entry("${data_eliberare_ci_APA}", dataEliberareCiApartinator),
-                Map.entry("${sectie_APA}", beneficiary.getGuardian().getSectie())
+                Map.entry("${apartament_APA}", beneficiary.getGuardian().getApartament())
         );
 
         try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
             documentFiller.fillTemplate(document, outputStream, placeholderValues);
             return outputStream.toByteArray();
         }
+    }
+
+    public String buildAddress(Person person) {
+        StringBuilder sb = new StringBuilder();
+
+        sb.append(person.getOras().isEmpty() ? ".".repeat(30) : person.getOras());
+
+        sb.append(", STR. ");
+        sb.append(person.getStrada().isEmpty() ? ".".repeat(30) : person.getStrada());
+
+        sb.append(", NR. ");
+        sb.append(person.getNumarAdresa().isEmpty() ? ".".repeat(10) : person.getNumarAdresa());
+
+        sb.append(person.getBloc().isEmpty() ? "" : ", BL. " + person.getBloc());
+        sb.append(person.getScara().isEmpty() ? "" : ", SC. " + person.getScara());
+        sb.append(person.getEtaj().isEmpty() ? "" : ", ET. " + person.getEtaj());
+        sb.append(person.getApartament().isEmpty() ? "" : ", AP. " + person.getApartament());
+
+        sb.append(", SECTOR/JUDEȚ ");
+        sb.append(person.getJudet().isEmpty() ? ".".repeat(30) : person.getJudet());
+
+        return sb.toString();
     }
 
     public void edit (String documentName, List<String> placeholders) throws IOException {
