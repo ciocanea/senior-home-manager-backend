@@ -35,6 +35,7 @@ jobs:
             imageToDeploy: ${{ secrets.REGISTRY_LOGIN_SERVER }}/shmbackend:${{ github.sha }}
             targetPort: 8080
             ingress: external
+            acrName: ${{ secrets.
             registryUrl: ${{ secrets.REGISTRY_LOGIN_SERVER }}
             registryUsername: ${{ secrets.REGISTRY_USERNAME }}
             registryPassword: ${{ secrets.REGISTRY_PASSWORD }}
