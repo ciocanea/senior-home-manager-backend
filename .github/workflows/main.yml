@@ -36,6 +36,6 @@ jobs:
             targetPort: 8080
             ingress: external
             acrName: ${{ secrets.ACR_NAME }}
-            registryUrl: ${{ secrets.REGISTRY_LOGIN_SERVER }}
-            registryUsername: ${{ secrets.REGISTRY_USERNAME }}
-            registryPassword: ${{ secrets.REGISTRY_PASSWORD }}
+#            registryUrl: ${{ secrets.REGISTRY_LOGIN_SERVER }}
+#            registryUsername: ${{ secrets.REGISTRY_USERNAME }}
+#            registryPassword: ${{ secrets.REGISTRY_PASSWORD }}
