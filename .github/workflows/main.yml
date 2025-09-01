@@ -1,41 +1,40 @@
 on:
   push:
     branches: ["deployment"]
-    
+
 name: Build and Push Docker Image
 
 jobs:
-    build-and-push:
-        runs-on: ubuntu-latest
-        steps:
-        - name: 'Checkout repo'
-          uses: actions/checkout@v4
-          
-        - name: 'Login via Azure CLI'
-          uses: azure/login@v1
-          with:
-            creds: ${{ secrets.AZURE_CREDENTIALS }}
-        
-        - name: 'Build and push image'
-          uses: azure/docker-login@v1
-          with:
-            login-server: ${{ secrets.REGISTRY_LOGIN_SERVER }}
-            username: ${{ secrets.REGISTRY_USERNAME }}
-            password: ${{ secrets.REGISTRY_PASSWORD }}
-        - run: |
-            docker build . -t ${{ secrets.REGISTRY_LOGIN_SERVER }}/shmbackend:${{ github.sha }}
-            docker push ${{ secrets.REGISTRY_LOGIN_SERVER }}/shmbackend:${{ github.sha }}
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 'Checkout repo'
+        uses: actions/checkout@v4
 
-        - name: 'Deploy to Azure Container Apps'
-          uses: azure/container-apps-deploy-action@v1
-          with:
-            resourceGroup: ${{ secrets.RESOURCE_GROUP }}
-            containerAppEnvironment: ${{ secrets.CONTAINER_APP_ENVIRONMENT }}
-            containerAppName: shm-backend-aca
-            imageToDeploy: ${{ secrets.REGISTRY_LOGIN_SERVER }}/shmbackend:${{ github.sha }}
-            targetPort: 8080
-            ingress: external
-            acrName: ${{ secrets.ACR_NAME }}
-#            registryUrl: ${{ secrets.REGISTRY_LOGIN_SERVER }}
-#            registryUsername: ${{ secrets.REGISTRY_USERNAME }}
-#            registryPassword: ${{ secrets.REGISTRY_PASSWORD }}
+      - name: 'Login via Azure CLI'
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: 'Build and push image'
+        uses: azure/docker-login@v1
+        with:
+          login-server: ${{ secrets.REGISTRY_LOGIN_SERVER }}
+          username: ${{ secrets.REGISTRY_USERNAME }}
+          password: ${{ secrets.REGISTRY_PASSWORD }}
+      - run: |
+          docker build . -t ${{ secrets.REGISTRY_LOGIN_SERVER }}/shmbackend:${{ github.sha }}
+          docker push ${{ secrets.REGISTRY_LOGIN_SERVER }}/shmbackend:${{ github.sha }}
+
+      - name: Azure CLI - Update Container App image
+        uses: azure/cli@v2
+        with:
+          inlineScript: |
+            RG="shm-gr"
+            APP="shm-backend-aca"
+            ACR_LOGIN="${{ secrets.REGISTRY_LOGIN_SERVER }}"
+            IMAGE="${ACR_LOGIN}/shmbackend:${{ github.sha }}"
+            
+            az containerapp update \
+              -g "$RG" -n "$APP" \
+              --image "$IMAGE"
