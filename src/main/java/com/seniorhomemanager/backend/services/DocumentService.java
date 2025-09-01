@@ -49,7 +49,7 @@ public class DocumentService {
         }
 
         String dataEliberareCi = "";
-        if (beneficiary.getDataNasterii() != null) {
+        if (beneficiary.getDataEliberareCi() != null) {
             dataEliberareCi = beneficiary.getDataEliberareCi().format(DateTimeFormatter.ofPattern("dd.MM.yyyy"));
         }
 
@@ -59,7 +59,7 @@ public class DocumentService {
         }
 
         String dataEliberareCiApartinator = "";
-        if (beneficiary.getGuardian().getDataNasterii() != null) {
+        if (beneficiary.getGuardian().getDataEliberareCi() != null) {
             dataEliberareCiApartinator = beneficiary.getGuardian().getDataEliberareCi().format(DateTimeFormatter.ofPattern("dd.MM.yyyy"));
         }
 
