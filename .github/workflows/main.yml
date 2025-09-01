@@ -34,7 +34,10 @@ jobs:
             APP="shm-backend-aca"
             ACR_LOGIN="${{ secrets.REGISTRY_LOGIN_SERVER }}"
             IMAGE="${ACR_LOGIN}/shmbackend:${{ github.sha }}"
-            
+      
             az containerapp update \
-              -g "$RG" -n "$APP" \
-              --image "$IMAGE"
+            -g "$RG" -n "$APP" \
+            --image "$IMAGE" \
+            --registry-server "$ACR_LOGIN" \
+            --registry-username "${{ secrets.REGISTRY_USERNAME }}" \
+            --registry-password "${{ secrets.REGISTRY_PASSWORD }}"
