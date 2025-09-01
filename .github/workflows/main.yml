@@ -26,18 +26,10 @@ jobs:
           docker build . -t ${{ secrets.REGISTRY_LOGIN_SERVER }}/shmbackend:${{ github.sha }}
           docker push ${{ secrets.REGISTRY_LOGIN_SERVER }}/shmbackend:${{ github.sha }}
 
-      - name: Azure CLI - Update Container App image
-        uses: azure/cli@v2
+      - name: Build and deploy Container App
+        uses: azure/container-apps-deploy-action@v1
         with:
-          inlineScript: |
-            RG="shm-gr"
-            APP="shm-backend-aca"
-            ACR_LOGIN="${{ secrets.REGISTRY_LOGIN_SERVER }}"
-            IMAGE="${ACR_LOGIN}/shmbackend:${{ github.sha }}"
-      
-            az containerapp update \
-            -g "$RG" -n "$APP" \
-            --image "$IMAGE" \
-            --registry-server "$ACR_LOGIN" \
-            --registry-username "${{ secrets.REGISTRY_USERNAME }}" \
-            --registry-password "${{ secrets.REGISTRY_PASSWORD }}"
+          acrName: ${{ secrets.ACR_NAME }}
+          containerAppName: shm-backend-aca
+          resourceGroup: shm-gr
+          imageToDeploy: ${{ secrets.ACR_NAME }}.azurecr.io/app:${{ github.sha }}
