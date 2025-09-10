@@ -32,5 +32,5 @@ jobs:
           inlineScript: |
             az containerapp update \
               --name ${{ secrets.ACA_NAME }} \
-              --resource-group  ${{ secrets.RESOURCE_GROUP }}
+              --resource-group  ${{ secrets.RESOURCE_GROUP }} \
               --image ${{ secrets.REGISTRY_LOGIN_SERVER }}/shmbackend:${{ github.sha }}
