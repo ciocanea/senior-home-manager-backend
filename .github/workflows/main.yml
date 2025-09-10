@@ -5,7 +5,7 @@ on:
 name: Build and Push Docker Image
 
 jobs:
-  build-and-push:
+  build-push-deploy:
     runs-on: ubuntu-latest
     steps:
       - name: 'Checkout repo'
@@ -26,10 +26,11 @@ jobs:
           docker build . -t ${{ secrets.REGISTRY_LOGIN_SERVER }}/shmbackend:${{ github.sha }}
           docker push ${{ secrets.REGISTRY_LOGIN_SERVER }}/shmbackend:${{ github.sha }}
 
-      - name: Build and deploy Container App
-        uses: azure/container-apps-deploy-action@v1
+      - name: 'Deploy image'
+        uses: azure/cli@v2
         with:
-          acrName: ${{ secrets.ACR_NAME }}
-          containerAppName: shm-backend-aca
-          resourceGroup: shm-gr
-          imageToDeploy: ${{ secrets.ACR_NAME }}.azurecr.io/app:${{ github.sha }}
+          inlineScript: |
+            az containerapp update \
+              --name ${{ secrets.ACA_NAME }} \
+              --resource-group  ${{ secrets.RESOURCE_GROUP }}
+              --image ${{ secrets.REGISTRY_LOGIN_SERVER }}/shmbackend:${{ github.sha }}
