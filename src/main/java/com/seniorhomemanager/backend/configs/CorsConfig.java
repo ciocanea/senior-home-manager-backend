@@ -13,7 +13,7 @@ public class CorsConfig {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
                 registry.addMapping("/**") // Allow all endpoints
-                        .allowedOrigins("https://lemon-coast-09aa7b703.2.azurestaticapps.net/") // Allow frontend URL
+                        .allowedOrigins("https://lemon-coast-09aa7b703.2.azurestaticapps.net") // Allow frontend URL
                         .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                         .allowedHeaders("*");
             }
