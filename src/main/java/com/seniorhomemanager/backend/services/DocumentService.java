@@ -1,5 +1,12 @@
 package com.seniorhomemanager.backend.services;
 
+import com.azure.core.util.BinaryData;
+import com.azure.storage.blob.BlobClient;
+import com.azure.storage.blob.BlobContainerClient;
+import com.azure.storage.blob.BlobServiceClient;
+import com.azure.storage.blob.BlobServiceClientBuilder;
+import com.azure.storage.blob.models.BlobItem;
+import com.azure.storage.blob.models.ListBlobsOptions;
 import com.seniorhomemanager.backend.models.Beneficiary;
 import com.seniorhomemanager.backend.models.Person;
 import com.seniorhomemanager.backend.utils.DocumentEditor;
@@ -7,16 +14,14 @@ import com.seniorhomemanager.backend.utils.DocumentFiller;
 import com.seniorhomemanager.backend.utils.DocumentSanitizer;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.io.*;
-import java.nio.file.Files;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 @Service
 public class DocumentService {
@@ -24,23 +29,114 @@ public class DocumentService {
     private final DocumentFiller documentFiller;
     private final DocumentEditor documentEditor;
     private final DocumentSanitizer documentSanitizer;
-
-    @Value("${document.folder.path:data/documents}")
-    private String documentFolderPath;
+    private final BlobContainerClient containerClient;
 
 
-    public DocumentService(DocumentFiller documentFiller, DocumentEditor documentEditor, DocumentSanitizer documentSanitizer) {
+    public DocumentService(
+            DocumentFiller documentFiller,
+            DocumentEditor documentEditor,
+            DocumentSanitizer documentSanitizer,
+            @Value("${azure.storage.connection-string}") String connectionString,
+            @Value("${azure.storage.container-name}") String containerName
+    ) {
         this.documentFiller = documentFiller;
         this.documentEditor = documentEditor;
         this.documentSanitizer = documentSanitizer;
+
+        BlobServiceClient serviceClient = new BlobServiceClientBuilder()
+                .connectionString(connectionString.substring(1, connectionString.length()-1))
+                .buildClient();
+
+        this.containerClient = serviceClient.getBlobContainerClient(containerName);
     }
 
-    public byte[] generate (String documentName, Beneficiary beneficiary) throws IOException {
-        File document = new File(documentFolderPath, documentName);
+    public byte[] generate (String userId, String documentName, Beneficiary beneficiary) throws IllegalArgumentException, IOException {
+        String blobName = userId + "/" +  documentName;
 
-        if (!document.exists() || !document.isFile()) {
+        BlobClient blobClient = containerClient.getBlobClient(blobName);
+
+        if (!blobClient.exists()) {
+            throw new IllegalArgumentException();
+        }
+
+        Map<String,String> placeholderValues = buildPlaceholdersValues(beneficiary);
+
+        byte[] document = blobClient.downloadContent().toBytes();
+
+        try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
+            documentFiller.fillTemplate(document, outputStream, placeholderValues);
+            return outputStream.toByteArray();
+        }
+    }
+
+    public void edit (String userId, String documentName, List<String> placeholders) throws IllegalArgumentException, IOException {
+        String blobName = userId + "/" +  documentName;
+
+        BlobClient blobClient = containerClient.getBlobClient(blobName);
+
+        if (!blobClient.exists()) {
+            throw new IllegalArgumentException();
+        }
+
+        byte[] document = blobClient.downloadContent().toBytes();
+
+        try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
+            documentEditor.replacePlaceholders(document, outputStream, placeholders);
+            upload(userId, documentName, outputStream.toByteArray());
+        }
+    }
+
+    public void upload(String userId, String filename, byte[] content) {
+        String blobName = userId + "/" + filename;
+
+        BlobClient blobClient = containerClient.getBlobClient(blobName);
+        blobClient.upload(BinaryData.fromBytes(content), true);
+    }
+
+    public byte[] sanitize (byte[] document) throws IOException {
+        try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
+            documentSanitizer.sanitize(document, outputStream);
+            return outputStream.toByteArray();
+        }
+    }
+
+    public void delete (String userId, String documentName) throws IllegalArgumentException {
+        String blobName = userId + "/" + documentName;
+
+        BlobClient blobClient = containerClient.getBlobClient(blobName);
+
+        if (!blobClient.deleteIfExists()) {
+            throw new IllegalArgumentException();
+        }
+    }
+
+
+    public byte[] get(String userId, String documentName) throws IllegalArgumentException {
+        String blobName = userId + "/" + documentName;
+
+        BlobClient blobClient = containerClient.getBlobClient(blobName);
+
+        if (!blobClient.exists()) {
             throw new IllegalArgumentException("Document not found: " + documentName);
         }
+
+        return blobClient.downloadContent().toBytes();
+    }
+
+    public List<String> getNames(String userId) {
+        String prefix = userId + "/";
+
+        Iterable<BlobItem> blobItems = containerClient.listBlobs(
+                new ListBlobsOptions().setPrefix(prefix), null);
+
+        return StreamSupport.stream(blobItems.spliterator(), false)
+                .map(BlobItem::getName)
+                .filter(name -> name.endsWith(".docx"))
+                .map(name -> name.substring(prefix.length()))
+                .collect(Collectors.toList());
+    }
+
+    public Map<String,String> buildPlaceholdersValues (Beneficiary beneficiary) {
 
         String currentDate = LocalDate.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy"));
         String dataNasterii = "";
@@ -63,7 +159,7 @@ public class DocumentService {
             dataEliberareCiApartinator = beneficiary.getGuardian().getDataEliberareCi().format(DateTimeFormatter.ofPattern("dd.MM.yyyy"));
         }
 
-        Map<String, String> placeholderValues = Map.ofEntries(
+        return Map.ofEntries(
                 Map.entry("${data}", currentDate),
 
                 Map.entry("${nume_BEN}", beneficiary.getNume()),
@@ -104,11 +200,6 @@ public class DocumentService {
                 Map.entry("${etaj_APA}", beneficiary.getGuardian().getEtaj()),
                 Map.entry("${apartament_APA}", beneficiary.getGuardian().getApartament())
         );
-
-        try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
-            documentFiller.fillTemplate(document, outputStream, placeholderValues);
-            return outputStream.toByteArray();
-        }
     }
 
     public String buildAddress(Person person) {
@@ -131,93 +222,5 @@ public class DocumentService {
         sb.append(person.getJudet().isEmpty() ? ".".repeat(30) : person.getJudet());
 
         return sb.toString();
-    }
-
-    public void edit (String documentName, List<String> placeholders) throws IOException {
-        File document = new File(documentFolderPath, documentName);
-
-        if (!document.exists() || !document.isFile()) {
-            throw new IllegalArgumentException("Document not found: " + documentName);
-        }
-
-        try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
-            documentEditor.replacePlaceholders(document, outputStream, placeholders);
-            upload(outputStream.toByteArray(), documentName);
-        }
-    }
-
-    public void upload (MultipartFile newDocument) {
-        File folder = new File(documentFolderPath);
-
-        if (!folder.exists() || !folder.isDirectory()) {
-            throw new IllegalArgumentException("Folder not found: " + documentFolderPath);
-        }
-
-        File newLocation = new File(folder, newDocument.getOriginalFilename());
-
-        try {
-            newDocument.transferTo(newLocation.toPath());
-        } catch (IOException e) {
-            throw new RuntimeException("Failed to save uploaded file", e);
-        }
-    }
-
-    public void upload (byte[] document, String documentName) {
-        File folder = new File(documentFolderPath);
-
-        if (!folder.exists() || !folder.isDirectory()) {
-            throw new IllegalArgumentException("Folder not found: " + documentFolderPath);
-        }
-
-        File newLocation = new File(folder, documentName);
-
-        try (FileOutputStream fileOutputStream = new FileOutputStream(newLocation)) {
-            fileOutputStream.write(document);
-        } catch (IOException e) {
-            throw new RuntimeException("Failed to save uploaded file", e);
-        }
-    }
-
-    public byte[] sanitize (byte[] document, String documentName) throws IOException {
-        try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
-            documentSanitizer.sanitize(document, outputStream);
-            return outputStream.toByteArray();
-        }
-    }
-
-    public void delete (String name) throws IOException{
-        File file = new File(documentFolderPath + File.separator + name);
-
-
-        if (!file.exists()) {
-            throw new FileNotFoundException("File not found: " + file.getAbsolutePath());
-        }
-
-        if (!file.delete()) {
-            throw new IOException("Failed to delete file: " + file.getAbsolutePath());
-        }
-    }
-
-    public byte[] get (String documentName) throws IOException {
-        File document = new File(documentFolderPath, documentName);
-
-        if (!document.exists() || !document.isFile()) {
-            throw new IllegalArgumentException("Document not found: " + documentName);
-        }
-
-        return Files.readAllBytes(document.toPath());
-    }
-
-    public List<String> getNames() throws IOException {
-        File folder = new File(documentFolderPath);
-
-        if (!folder.exists() || !folder.isDirectory()) {
-            throw new FileNotFoundException("Folder not found: " + documentFolderPath);
-        }
-
-        return Arrays.stream(folder.listFiles())
-                .filter(file -> file.isFile() && file.getName().endsWith(".docx"))
-                .map(File::getName)
-                .collect(Collectors.toList());
     }
 }

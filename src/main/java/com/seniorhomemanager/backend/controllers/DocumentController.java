@@ -40,7 +40,7 @@ public class DocumentController {
             String documentName = documentRequestDTO.getDocumentName();
             Beneficiary beneficiary = beneficiaryService.get(documentRequestDTO.getBeneficiaryId());
 
-            byte[] document = documentService.generate(documentName, beneficiary);
+            byte[] document = documentService.generate("user1", documentName, beneficiary);
 
             return ResponseEntity.ok()
                     .contentType(MediaType.APPLICATION_OCTET_STREAM)
@@ -57,7 +57,7 @@ public class DocumentController {
     @PutMapping("/edit/{documentName}")
     public ResponseEntity<Void> edit (@PathVariable String documentName, @RequestBody List<String> placeholders) {
         try {
-            documentService.edit(documentName, placeholders);
+            documentService.edit("user1", documentName, placeholders);
 
             return ResponseEntity.ok().build();
         }
@@ -71,9 +71,8 @@ public class DocumentController {
     @PostMapping("/upload")
     public ResponseEntity<Void> upload (@RequestParam("newDocument") MultipartFile newDocument) {
         try {
-            byte[] sanitizedDocument = documentService.sanitize(newDocument.getBytes(), newDocument.getOriginalFilename());
-            documentService.upload(sanitizedDocument, newDocument.getOriginalFilename());
-//            documentService.upload(newDocument.getBytes(), newDocument.getOriginalFilename());
+            byte[] sanitizedDocument = documentService.sanitize(newDocument.getBytes());
+            documentService.upload("user1", newDocument.getOriginalFilename(), sanitizedDocument);
             return ResponseEntity.ok().build();
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
@@ -83,9 +82,9 @@ public class DocumentController {
     @DeleteMapping()
     public ResponseEntity<Void> delete (@RequestParam String documentName) {
         try {
-            documentService.delete(documentName);
+            documentService.delete("user1", documentName);
             return ResponseEntity.ok().build();
-        } catch (IOException e) {
+        } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }
@@ -93,21 +92,17 @@ public class DocumentController {
     @GetMapping("/{documentName}")
     public ResponseEntity<byte[]> get (@PathVariable String documentName) {
         try {
-            byte[] content = documentService.get(documentName);
+            byte[] content = documentService.get("user1", documentName);
             return ResponseEntity.ok(content);
-        } catch (IOException e) {
+        } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
         }
     }
 
     @GetMapping("/getNames")
-    public ResponseEntity<List<String>> getTemplateNames() {
-        try {
-            List<String> documentNames = documentService.getNames();
-            return ResponseEntity.ok(documentNames);
-        } catch (IOException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
-        }
+    public ResponseEntity<List<String>> getNames() {
+        List<String> documentNames = documentService.getNames("user1");
+        return ResponseEntity.ok(documentNames);
     }
 
 }
