@@ -30,8 +30,7 @@ public class DocumentService {
     private final DocumentEditor documentEditor;
     private final DocumentSanitizer documentSanitizer;
     private final BlobContainerClient containerClient;
-
-
+    
     public DocumentService(
             DocumentFiller documentFiller,
             DocumentEditor documentEditor,
