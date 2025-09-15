@@ -3,20 +3,17 @@ package com.seniorhomemanager.backend.utils;
 import org.apache.poi.xwpf.usermodel.*;
 import org.springframework.stereotype.Component;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.OutputStream;
+import java.io.*;
 import java.util.List;
 import java.util.Map;
 
 @Component
 public class DocumentFiller {
 
-    public void fillTemplate (File templateDocument, OutputStream outputStream, Map<String, String> placeholderValues) throws IOException {
+    public void fillTemplate (byte[] templateDocument, OutputStream outputStream, Map<String, String> placeholderValues) throws IOException {
         try (
-            FileInputStream fileInputStream = new FileInputStream(templateDocument);
-            XWPFDocument modifiableDocument = new XWPFDocument(fileInputStream);
+                InputStream inputStream = new ByteArrayInputStream(templateDocument);
+                XWPFDocument modifiableDocument = new XWPFDocument(inputStream);
         ) {
             for (XWPFParagraph paragraph: modifiableDocument.getParagraphs()) {
                 fillInParagraph(paragraph, placeholderValues);

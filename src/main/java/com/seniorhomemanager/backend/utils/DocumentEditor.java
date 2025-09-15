@@ -5,20 +5,17 @@ import org.apache.poi.xwpf.usermodel.XWPFParagraph;
 import org.apache.poi.xwpf.usermodel.XWPFRun;
 import org.springframework.stereotype.Component;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.OutputStream;
+import java.io.*;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @Component
 public class DocumentEditor {
-    public void replacePlaceholders (File document, OutputStream outputStream, List<String> placeholders) throws IOException {
+    public void replacePlaceholders (byte[] document, OutputStream outputStream, List<String> placeholders) throws IOException {
         try (
-                FileInputStream fileInputStream = new FileInputStream(document);
-                XWPFDocument modifiableDocument = new XWPFDocument(fileInputStream);
+                InputStream inputStream = new ByteArrayInputStream(document);
+                XWPFDocument modifiableDocument = new XWPFDocument(inputStream);
         ) {
             int placeholderIndex = 0;
             for (XWPFParagraph paragraph: modifiableDocument.getParagraphs()) {

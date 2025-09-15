@@ -31,6 +31,8 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-web")
 	implementation("org.apache.poi:poi-ooxml:5.4.0")
 	implementation("org.apache.commons:commons-lang3:3.18.0")
+	implementation(platform("com.azure:azure-sdk-bom:1.2.38"))
+	implementation("com.azure:azure-storage-blob")
 	compileOnly("org.projectlombok:lombok")
 	developmentOnly("org.springframework.boot:spring-boot-devtools")
 	runtimeOnly("com.h2database:h2")
